@@ -13,18 +13,17 @@ public class CommandParser {
     }
 
     public static byte[] dispatch(Object parsed) {
-        if (!(parsed instanceof Object[] arr) || arr.length == 0) {
+        if(!(parsed instanceof Object[] arr) || arr.length == 0) {
             return RespEncoder.error("invalid command format");
         }
 
-        // all elements should be bulk strings (redis-cli always sends arrays)
         String[] cmdArgs = new String[arr.length];
-        for (int i = 0; i < arr.length; i++) {
+        for(int i = 0; i < arr.length; i++) {
             cmdArgs[i] = (String) arr[i];
         }
 
         Command cmd = commands.get(cmdArgs[0].toUpperCase());
-        if (cmd == null) {
+        if(cmd == null) {
             return RespEncoder.error("unknown command '" + cmdArgs[0] + "'");
         }
 

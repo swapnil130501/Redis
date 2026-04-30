@@ -8,8 +8,12 @@ public class PingCommand implements Command {
     public byte[] execute(String[] args) {
         // PING with no args → +PONG
         // PING "hello"     → +hello
-        if(args.length > 1) {
-            return RespEncoder.simpleString(args[1]);
+        if(args.length > 2) {
+            return RespEncoder.error("wrong number of arguments for 'ping' command");
+        }
+
+        if(args.length == 2) {
+            return RespEncoder.bulkString(args[1]);
         }
 
         return RespEncoder.simpleString("PONG");

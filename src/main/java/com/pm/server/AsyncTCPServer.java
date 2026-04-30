@@ -1,5 +1,8 @@
 package com.pm.server;
 
+import com.pm.command.CommandParser;
+import com.pm.resp.RespParser;
+
 import java.io.*;
 import java.net.*;
 import java.nio.*;
@@ -8,20 +11,25 @@ import java.util.*;
 
 public class AsyncTCPServer {
     public static void main(String[] args) throws IOException {
+        // Create a selector (epoll instance in Linux)
+        // ⤷ Under the hood: epoll_create()
         Selector selector = Selector.open();
 
         ServerSocketChannel serverChannel = ServerSocketChannel.open();
         serverChannel.bind(new InetSocketAddress(7379));
         serverChannel.configureBlocking(false);
+
+        // Register the server socket FD with the selector for ACCEPT events
+        // ⤷ Under the hood: epoll_ctl(ADD, server_fd, EPOLLIN)
         serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 
         System.out.println("Listening on port 7379 (NIO)...");
 
-        ByteBuffer buf = ByteBuffer.allocate(4096);
-
+        // Event loop — continuously wait for events (I/O readiness)
         while(true) {
-            selector.select(); //epoll.wait(), blocking method
-
+            // ⤷ Under the hood: epoll_wait(epfd, events, MAX_EVENTS, -1)
+            // Blocks until some file descriptors (channels) are ready
+            selector.select();
             Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
 
             while(keys.hasNext()) {
@@ -33,24 +41,29 @@ public class AsyncTCPServer {
                     client.configureBlocking(false);
                     client.register(selector, SelectionKey.OP_READ);
                     System.out.println("Accepted: " + client.getRemoteAddress());
-
                 }
 
                 else if(key.isReadable()) {
                     SocketChannel client = (SocketChannel) key.channel();
+                    ByteBuffer buf = ByteBuffer.allocate(4096);
                     buf.clear();
                     int n = client.read(buf);
 
                     if(n == -1) {
-                        System.out.println("Client disconnected");
                         key.cancel();
                         client.close();
                     }
 
                     else {
-                        System.out.print("Received: " + new String(buf.array(), 0, n));
-                        buf.flip();
-                        client.write(buf);
+                        try {
+                            Object parsed = RespParser.parse(buf.array(), n);
+                            byte[] response = CommandParser.dispatch(parsed);
+                            client.write(ByteBuffer.wrap(response));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            String err = "-ERR parse error: " + e.getMessage() + "\r\n";
+                            client.write(ByteBuffer.wrap(err.getBytes()));
+                        }
                     }
                 }
             }
