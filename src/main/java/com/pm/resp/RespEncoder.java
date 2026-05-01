@@ -16,4 +16,8 @@ public class RespEncoder {
     public static byte[] integer(long n) {
         return (":" + n + "\r\n").getBytes();
     }
+
+    public static byte[] nullBulk() {
+        return "$-1\r\n".getBytes();
+    }
 }
