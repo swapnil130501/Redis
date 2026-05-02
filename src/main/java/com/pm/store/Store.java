@@ -44,4 +44,23 @@ public class Store {
     public boolean exists(String key) {
         return get(key) != null;
     }
+
+    public long ttl(String key) {
+        Entry entry = map.get(key);
+
+        if(entry == null) {
+            return -2;
+        }
+
+        if(entry.expiresAt == -1) {
+            return -1;
+        }
+
+        if(entry.isExpired()) {
+            map.remove(key);
+            return -2;
+        }
+
+        return (entry.expiresAt - System.currentTimeMillis()) / 1000;
+    }
 }
