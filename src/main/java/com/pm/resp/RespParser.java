@@ -18,7 +18,6 @@ public class RespParser {
 
     private static Object parseValue(BufferedReader reader) throws IOException {
         String line = reader.readLine();
-        System.out.println(line);
 
         if(line == null) {
             throw new IOException("Unexpected end of input");

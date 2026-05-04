@@ -1,9 +1,6 @@
 package com.pm.command;
 
-import com.pm.command.impl.GetCommand;
-import com.pm.command.impl.PingCommand;
-import com.pm.command.impl.SetCommand;
-import com.pm.command.impl.TtlCommand;
+import com.pm.command.impl.*;
 import com.pm.resp.RespEncoder;
 import com.pm.store.Store;
 
@@ -19,6 +16,7 @@ public class CommandParser {
         commands.put("SET", new SetCommand(store));
         commands.put("GET", new GetCommand(store));
         commands.put("TTL", new TtlCommand(store));
+        commands.put("DEL", new DelCommand(store));
     }
 
     public static byte[] dispatch(Object parsed) {

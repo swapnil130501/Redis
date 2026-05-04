@@ -37,8 +37,18 @@ public class Store {
         return entry.value;
     }
 
-    public boolean delete(String key) {
-        return map.remove(key) != null;
+    public int delete(String... keys) {
+        int cnt = 0;
+        for(String key : keys) {
+            Entry entry = map.get(key);
+
+            if(entry != null && !entry.isExpired()) {
+                map.remove(key);
+                cnt++;
+            }
+        }
+
+        return cnt;
     }
 
     public boolean exists(String key) {
