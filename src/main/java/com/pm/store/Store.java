@@ -1,8 +1,11 @@
 package com.pm.store;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Store {
+    private static final Logger logger = Logger.getLogger(Store.class.getName());
 
     private static class Entry {
         String value;
@@ -85,12 +88,16 @@ public class Store {
     }
 
     public void deleteExpiredKeys() {
+        int cnt = 0;
         for(String key : map.keySet()) {
             Entry entry = map.get(key);
 
             if(entry != null && entry.isExpired()) {
                 map.remove(key);
+                cnt++;
             }
         }
+
+        logger.log(Level.INFO, "[CRON] Active expiry sweep — deleted {0} expired keys", cnt);
     }
 }

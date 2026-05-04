@@ -9,8 +9,11 @@ import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class AsyncTCPServer {
+    private static final Logger logger = Logger.getLogger(Store.class.getName());
+
     public static void main(String[] args) throws IOException {
         Store store = new Store();
         CommandParser.init(store);
@@ -29,7 +32,7 @@ public class AsyncTCPServer {
 
         System.out.println("Listening on port 7379 (NIO)...");
 
-        long cronFrequency = 60 * 1000L;
+        long cronFrequency = 10000L;
         long lastCron = System.currentTimeMillis();
 
         // Event loop — continuously wait for events (I/O readiness)
@@ -40,6 +43,7 @@ public class AsyncTCPServer {
 
             long now = System.currentTimeMillis();
             if(now - lastCron >= cronFrequency) {
+                logger.info("[CRON] Running active expiry sweep...");
                 store.deleteExpiredKeys();
                 lastCron = now;
             }
