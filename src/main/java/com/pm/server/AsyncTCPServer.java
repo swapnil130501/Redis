@@ -9,10 +9,11 @@ import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AsyncTCPServer {
-    private static final Logger logger = Logger.getLogger(Store.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(AsyncTCPServer.class);
 
     public static void main(String[] args) throws IOException {
         Store store = new Store();

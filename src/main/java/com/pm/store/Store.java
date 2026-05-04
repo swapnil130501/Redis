@@ -1,11 +1,16 @@
 package com.pm.store;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 public class Store {
-    private static final Logger logger = Logger.getLogger(Store.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(Store.class);
 
     private static class Entry {
         String value;
@@ -88,16 +93,38 @@ public class Store {
     }
 
     public void deleteExpiredKeys() {
-        int cnt = 0;
-        for(String key : map.keySet()) {
-            Entry entry = map.get(key);
+        int sampled = 0;
+        int deleted = 0;
 
-            if(entry != null && entry.isExpired()) {
+        List<String> keyList = new ArrayList<>(map.keySet());
+        Collections.shuffle(keyList);
+
+        for(String key : keyList) {
+            if(sampled >= 20) {
+                break;
+            }
+
+            Entry entry = map.get(key);
+            if(entry == null) {
+                continue;
+            }
+
+            sampled++;
+
+            if(entry.isExpired()) {
                 map.remove(key);
-                cnt++;
+                deleted++;
             }
         }
 
-        logger.log(Level.INFO, "[CRON] Active expiry sweep — deleted {0} expired keys", cnt);
+        double expiredRatio = sampled == 0 ? 0 : (double) deleted / sampled;
+
+        logger.info("[CRON] Sampled={} Deleted={} Ratio={}",
+                sampled, deleted, String.format("%.2f", expiredRatio));
+
+        if(expiredRatio > 0.25) {
+            logger.info("[CRON] Expired ratio > 25%, running again...");
+            deleteExpiredKeys();
+        }
     }
 }
