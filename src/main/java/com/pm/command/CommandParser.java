@@ -17,6 +17,7 @@ public class CommandParser {
         commands.put("GET", new GetCommand(store));
         commands.put("TTL", new TtlCommand(store));
         commands.put("DEL", new DelCommand(store));
+        commands.put("EXPIRE", new ExpireCommand(store));
     }
 
     public static byte[] dispatch(Object parsed) {

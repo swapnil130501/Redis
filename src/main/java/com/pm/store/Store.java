@@ -73,4 +73,14 @@ public class Store {
 
         return (entry.expiresAt - System.currentTimeMillis()) / 1000;
     }
+
+    public int setExpTime(String key, long ttlSeconds) {
+        Entry entry = map.get(key);
+        if(entry == null || entry.isExpired()) {
+            return 0;
+        }
+
+        entry.expiresAt = System.currentTimeMillis() + ttlSeconds * 1000;
+        return 1;
+    }
 }
