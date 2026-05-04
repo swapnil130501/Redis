@@ -2,6 +2,7 @@ package com.pm.server;
 
 import com.pm.command.CommandParser;
 import com.pm.resp.RespParser;
+import com.pm.store.Store;
 
 import java.io.*;
 import java.net.*;
@@ -11,6 +12,9 @@ import java.util.*;
 
 public class AsyncTCPServer {
     public static void main(String[] args) throws IOException {
+        Store store = new Store();
+        CommandParser.init(store);
+
         // Create a selector (epoll instance in Linux)
         // ⤷ Under the hood: epoll_create()
         Selector selector = Selector.open();
@@ -25,13 +29,22 @@ public class AsyncTCPServer {
 
         System.out.println("Listening on port 7379 (NIO)...");
 
+        long cronFrequency = 60 * 1000L;
+        long lastCron = System.currentTimeMillis();
+
         // Event loop — continuously wait for events (I/O readiness)
         while(true) {
             // ⤷ Under the hood: epoll_wait(epfd, events, MAX_EVENTS, -1)
             // Blocks until some file descriptors (channels) are ready
-            selector.select();
-            Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
+            selector.select(cronFrequency);
 
+            long now = System.currentTimeMillis();
+            if(now - lastCron >= cronFrequency) {
+                store.deleteExpiredKeys();
+                lastCron = now;
+            }
+
+            Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
             while(keys.hasNext()) {
                 SelectionKey key = keys.next();
                 keys.remove();

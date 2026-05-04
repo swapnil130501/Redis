@@ -10,13 +10,12 @@ import java.util.Map;
 public class CommandParser {
     private static final Map<String, Command> commands = new HashMap<>();
 
-    static {
-        Store store = new Store();
-        commands.put("PING", new PingCommand());
-        commands.put("SET", new SetCommand(store));
-        commands.put("GET", new GetCommand(store));
-        commands.put("TTL", new TtlCommand(store));
-        commands.put("DEL", new DelCommand(store));
+    public static void init(Store store) {
+        commands.put("PING",   new PingCommand());
+        commands.put("SET",    new SetCommand(store));
+        commands.put("GET",    new GetCommand(store));
+        commands.put("DEL",    new DelCommand(store));
+        commands.put("TTL",    new TtlCommand(store));
         commands.put("EXPIRE", new ExpireCommand(store));
     }
 

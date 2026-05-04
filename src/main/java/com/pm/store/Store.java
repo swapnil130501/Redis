@@ -83,4 +83,14 @@ public class Store {
         entry.expiresAt = System.currentTimeMillis() + ttlSeconds * 1000;
         return 1;
     }
+
+    public void deleteExpiredKeys() {
+        for(String key : map.keySet()) {
+            Entry entry = map.get(key);
+
+            if(entry != null && entry.isExpired()) {
+                map.remove(key);
+            }
+        }
+    }
 }
